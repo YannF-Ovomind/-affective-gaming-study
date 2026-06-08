@@ -287,11 +287,11 @@ const TIME_SLOTS = generateSlots();
 // ─── STATE ────────────────────────────────────────────────────────────────────
 let userName = '', userEmail = '';
 let selectedSlot = null;
-let bookedSlots = []; // array of slot keys like "thu11|10:00"
+let bookedSlots = []; // array of {key, name, email}
 
 // ─── STORAGE HELPERS ─────────────────────────────────────────────────────────
 function slotKey(dayId, time) { return `${dayId}|${time}`; }
-function isBooked(dayId, time) { return bookedSlots.includes(slotKey(dayId, time)); }
+function isBooked(dayId, time) { return bookedSlots.some(b => b.key === slotKey(dayId, time)); }
 
 async function fetchBooked() {
   try {
@@ -306,9 +306,9 @@ async function fetchBooked() {
   }
 }
 
-async function markBooked(dayId, time) {
+async function markBooked(dayId, time, name, email) {
   const key = slotKey(dayId, time);
-  if (!bookedSlots.includes(key)) bookedSlots.push(key);
+  if (!bookedSlots.some(b => b.key === key)) bookedSlots.push({ key, name, email });
   try {
     await fetch(BASE_URL, {
       method: 'PUT',
@@ -430,7 +430,7 @@ async function confirmBooking() {
     : 'FONGIT, 34 rte de la Galaise, Plan-les-Ouates';
 
   // Mark slot as taken in shared storage
-  await markBooked(selectedSlot.dayId, selectedSlot.slotStart);
+  await markBooked(selectedSlot.dayId, selectedSlot.slotStart, userName, userEmail);
 
   // Open Gmail compose with both addresses and pre-filled body
   const subject = encodeURIComponent(

@@ -63,7 +63,7 @@
   .slot.taken { background: var(--red-glow) !important; }
   .slot.taken:hover { background: rgba(255,90,90,0.18) !important; }
   .slot.taken .slot-time { color: var(--red); text-decoration: line-through; }
-  .slot.taken .pip { width: 10px; height: 10px; border-radius: 50%; background: var(--red); border: none; }
+  .slot.taken .slot-name { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--red); max-width: 70px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .col-gap { width: 8px; }
 
   .actions-row { display: flex; gap: 8px; margin-top: 1.5rem; flex-wrap: wrap; }
@@ -121,13 +121,14 @@ function generateSlots() {
 }
 const TIME_SLOTS = generateSlots();
 
-let bookedSlots = [];
+let bookedSlots = []; // array of {key, name, email}
 let saving = false;
 
 function binId()  { return document.getElementById('cfg-id').value.trim(); }
 function apiKey() { return document.getElementById('cfg-key').value.trim(); }
 function baseUrl(){ return `https://api.jsonbin.io/v3/b/${binId()}`; }
 function slotKey(dayId, time) { return `${dayId}|${time}`; }
+function getBooking(dayId, time) { return bookedSlots.find(b => b.key === slotKey(dayId, time)); }
 
 function setStatus(msg, type = 'info') {
   const el = document.getElementById('status');
@@ -145,7 +146,6 @@ async function load() {
     bookedSlots = data.record.booked || [];
     buildGrid();
     setStatus(`Loaded. ${bookedSlots.length} slot(s) taken.`, 'ok');
-    // Save creds to sessionStorage so you don't retype on refresh
     sessionStorage.setItem('admin_id',  binId());
     sessionStorage.setItem('admin_key', apiKey());
   } catch(e) {
@@ -187,11 +187,17 @@ function buildGrid() {
     const slotsCont = document.createElement('div');
     slotsCont.className = 'slots-col';
     TIME_SLOTS.forEach(s => {
+      const booking = getBooking(day.id, s);
+      const taken = !!booking;
       const key = slotKey(day.id, s);
-      const taken = bookedSlots.includes(key);
       const div = document.createElement('div');
       div.className = 'slot ' + (taken ? 'taken' : 'free');
-      div.innerHTML = `<span class="slot-time">${s}</span><span class="pip"></span>`;
+      if (taken) {
+        const firstName = booking.name ? booking.name.split(' ')[0] : '—';
+        div.innerHTML = `<span class="slot-time">${s}</span><span class="slot-name" title="${booking.name} · ${booking.email}">${firstName}</span>`;
+      } else {
+        div.innerHTML = `<span class="slot-time">${s}</span><span class="pip"></span>`;
+      }
       div.addEventListener('click', () => toggleSlot(div, key));
       slotsCont.appendChild(div);
     });
@@ -203,12 +209,14 @@ function buildGrid() {
 
 function toggleSlot(el, key) {
   if (saving) return;
-  if (bookedSlots.includes(key)) {
-    bookedSlots = bookedSlots.filter(k => k !== key);
+  if (bookedSlots.some(b => b.key === key)) {
+    bookedSlots = bookedSlots.filter(b => b.key !== key);
     el.className = 'slot free';
+    el.innerHTML = `<span class="slot-time">${key.split('|')[1]}</span><span class="pip"></span>`;
   } else {
-    bookedSlots.push(key);
+    bookedSlots.push({ key, name: '(manual)', email: '' });
     el.className = 'slot taken';
+    el.innerHTML = `<span class="slot-time">${key.split('|')[1]}</span><span class="slot-name">manual</span>`;
   }
   save();
 }
