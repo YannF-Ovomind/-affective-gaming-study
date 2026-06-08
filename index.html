@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Book Your Session — Affective Gaming Study</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0a0a0f; --surface: #111118; --surface2: #18181f;
+    --border: rgba(255,255,255,0.08); --border2: rgba(255,255,255,0.14);
+    --text: #f0eff8; --muted: #8885a8;
+    --accent: #7c6dfa; --accent-glow: rgba(124,109,250,0.18);
+    --accent2: #00e5b0; --accent2-glow: rgba(0,229,176,0.12);
+    --danger: #ff5a5a; --battelle: #7c6dfa; --fongit: #00e5b0;
+    --slot-h: 28px; --col-w: 130px;
+  }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+
+  .view { display: none; }
+  .view.active { display: block; }
+  .container { max-width: 860px; margin: 0 auto; padding: 0 1.5rem; }
+
+  header { padding: 3rem 0 2rem; border-bottom: 1px solid var(--border); margin-bottom: 2.5rem; }
+  .header-inner { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  .study-tag { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); background: var(--accent-glow); border: 1px solid rgba(124,109,250,0.3); padding: 4px 10px; border-radius: 4px; display: inline-block; margin-bottom: 0.75rem; }
+  h1 { font-family: 'Syne', sans-serif; font-size: clamp(1.6rem, 4vw, 2.4rem); font-weight: 800; line-height: 1.15; letter-spacing: -0.02em; }
+  .subtitle { font-size: 13px; color: var(--muted); margin-top: 0.4rem; line-height: 1.7; }
+  .reward-badge { display: flex; align-items: center; background: var(--accent2-glow); border: 1px solid rgba(0,229,176,0.25); padding: 10px 16px; border-radius: 8px; flex-shrink: 0; }
+  .reward-badge .amount { font-family: 'Syne', sans-serif; font-size: 1.4rem; font-weight: 700; color: var(--accent2); }
+  .reward-badge .label { font-size: 11px; color: var(--muted); line-height: 1.3; margin-left: 10px; }
+
+  .steps { display: flex; align-items: center; margin-bottom: 2rem; }
+  .step-item { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 500; color: var(--muted); font-family: 'DM Mono', monospace; }
+  .step-item.active { color: var(--text); }
+  .step-item.done { color: var(--accent2); }
+  .step-num { width: 22px; height: 22px; border-radius: 50%; border: 1px solid var(--border2); display: flex; align-items: center; justify-content: center; font-size: 11px; background: var(--surface); }
+  .step-item.active .step-num { border-color: var(--accent); color: var(--accent); }
+  .step-item.done .step-num { border-color: var(--accent2); background: var(--accent2); color: var(--bg); }
+  .step-divider { flex: 1; height: 1px; background: var(--border); margin: 0 8px; min-width: 20px; }
+
+  .form-section { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.25rem; }
+  .form-section label { display: block; font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); margin-bottom: 6px; letter-spacing: 0.04em; text-transform: uppercase; }
+  .form-section input { width: 100%; background: var(--surface2); border: 1px solid var(--border2); border-radius: 8px; padding: 10px 14px; font-size: 15px; color: var(--text); font-family: 'DM Sans', sans-serif; outline: none; transition: border-color 0.15s; }
+  .form-section input:focus { border-color: var(--accent); }
+  .form-section input::placeholder { color: var(--muted); }
+
+  .legend { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .dot-battelle { background: var(--battelle); }
+  .dot-fongit { background: var(--fongit); }
+  .legend-item.legend-taken { color: var(--muted); opacity: 0.6; }
+  .legend-dot-taken { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; background: #333; border: 1px solid #555; }
+
+  .schedule-wrapper { overflow-x: auto; padding-bottom: 0.5rem; }
+  .schedule-grid { display: grid; min-width: fit-content; }
+  .day-col { min-width: var(--col-w); }
+  .day-header { padding: 10px 8px 8px; border-radius: 8px 8px 0 0; background: var(--surface2); border: 1px solid var(--border); border-bottom: none; }
+  .day-name { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; }
+  .day-date { font-size: 11px; color: var(--muted); margin-top: 2px; font-family: 'DM Mono', monospace; }
+  .day-loc { display: inline-flex; align-items: center; font-size: 10px; margin-top: 5px; padding: 2px 7px; border-radius: 4px; font-family: 'DM Mono', monospace; text-transform: uppercase; letter-spacing: 0.06em; }
+  .loc-battelle { background: rgba(124,109,250,0.15); color: var(--battelle); }
+  .loc-fongit { background: rgba(0,229,176,0.12); color: var(--fongit); }
+  .slots-col { background: var(--surface); border: 1px solid var(--border); border-top: none; border-radius: 0 0 8px 8px; overflow: hidden; }
+
+  /* Available slot */
+  .slot { display: flex; align-items: center; justify-content: space-between; padding: 5px 10px; cursor: pointer; transition: background 0.1s; border-bottom: 1px solid var(--border); user-select: none; min-height: var(--slot-h); }
+  .slot:last-child { border-bottom: none; }
+  .slot:hover { background: var(--surface2); }
+  .slot.selected { background: var(--accent-glow) !important; }
+  .slot-time { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); flex-shrink: 0; }
+  .slot.selected .slot-time { color: var(--accent); }
+  .slot-check { width: 16px; height: 16px; border-radius: 50%; border: 1px solid var(--border2); flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+  .slot.selected .slot-check { border-color: var(--accent); background: var(--accent); }
+  .slot.selected .slot-check::after { content: ''; display: block; width: 6px; height: 4px; border-left: 2px solid #fff; border-bottom: 2px solid #fff; transform: rotate(-45deg) translateY(-1px); }
+
+  /* Taken slot */
+  .slot.taken { cursor: not-allowed; opacity: 0.45; background: var(--surface) !important; }
+  .slot.taken:hover { background: var(--surface) !important; }
+  .slot.taken .slot-time { color: #555; text-decoration: line-through; }
+  .slot.taken .slot-check { border-color: #444; background: #222; }
+  .slot.taken .slot-check::after { content: '✕'; color: #555; font-size: 8px; display: flex; align-items: center; justify-content: center; border: none; width: auto; height: auto; transform: none; }
+
+  .col-gap { width: 8px; }
+  .hint-bar { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; font-size: 12px; color: var(--muted); margin-bottom: 1.25rem; display: flex; align-items: center; gap: 8px; }
+  .loading-spinner { width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.1); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; flex-shrink: 0; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .selection-summary { background: var(--surface2); border: 1px solid rgba(124,109,250,0.3); border-radius: 8px; padding: 12px 14px; margin-top: 1rem; }
+  .sel-item { font-size: 12px; color: var(--accent); font-family: 'DM Mono', monospace; margin-top: 6px; }
+
+  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 11px 22px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; border: none; font-family: 'DM Sans', sans-serif; transition: all 0.15s; text-decoration: none; }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: #9387fc; transform: translateY(-1px); }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border2); }
+  .btn-ghost:hover { color: var(--text); background: var(--surface2); }
+  .actions { display: flex; gap: 10px; margin-top: 1.5rem; flex-wrap: wrap; align-items: center; }
+
+  .success-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 2rem; max-width: 520px; margin: 4rem auto; text-align: center; }
+  .success-icon { width: 56px; height: 56px; border-radius: 50%; background: var(--accent2-glow); border: 2px solid rgba(0,229,176,0.3); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem; font-size: 22px; }
+  .success-title { font-family: 'Syne', sans-serif; font-size: 1.5rem; font-weight: 700; margin-bottom: 0.75rem; }
+
+  footer { border-top: 1px solid var(--border); padding: 1.5rem 0 2.5rem; margin-top: 3rem; }
+  .footer-text { font-size: 12px; color: var(--muted); }
+
+  @media (max-width: 600px) { :root { --col-w: 100px; } }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="header-inner">
+      <div>
+        <div class="study-tag">QMUL × UNIGE × Geneva — June 2026</div>
+        <h1>Affective Gaming<br>Study — Book a slot</h1>
+        <p class="subtitle">
+          Queen Mary University of London · Université de Genève<br>
+          <span style="font-size:12px;">Battelle Bat.A Rm 312, Rte de la Capite 77, 1223 Cologny &amp; FONGIT, 34 rte de la Galaise, 1228 Plan-les-Ouates</span>
+        </p>
+      </div>
+      <div class="reward-badge">
+        <div>
+          <div class="amount">10 CHF</div>
+          <div class="label">Steam gift card<br>60 min session</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- SUCCESS VIEW -->
+  <div class="view" id="view-success">
+    <div class="success-card">
+      <div class="success-icon">✓</div>
+      <div class="success-title">You're booked!</div>
+      <p style="font-size:14px;color:var(--muted);line-height:1.7;">
+        Thank you! A Gmail compose window should have opened with your booking details pre-filled — just hit Send.<br><br>
+        If it didn't open, please email <a href="mailto:y.n.frachi@qmul.ac.uk" style="color:var(--accent);">y.n.frachi@qmul.ac.uk</a> with your chosen slot.<br><br>
+        Questions? <a href="mailto:y.n.frachi@qmul.ac.uk" style="color:var(--accent);">y.n.frachi@qmul.ac.uk</a> · <a href="mailto:frachi.yann@ovomind.com" style="color:var(--accent);">frachi.yann@ovomind.com</a>
+      </p>
+      <div class="actions" style="justify-content:center;margin-top:1.5rem;">
+        <a href="/" class="btn btn-ghost">← Back to start</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 1 — Info -->
+  <div class="view" id="view-step1">
+    <div class="steps">
+      <div class="step-item active"><span class="step-num">1</span> Your info</div>
+      <div class="step-divider"></div>
+      <div class="step-item"><span class="step-num">2</span> Pick a slot</div>
+      <div class="step-divider"></div>
+      <div class="step-item"><span class="step-num">3</span> Confirm</div>
+    </div>
+    <div class="form-section">
+      <label>Full name</label>
+      <input type="text" id="input-name" placeholder="e.g. Sophie Müller" autocomplete="name">
+    </div>
+    <div class="form-section">
+      <label>Email address</label>
+      <input type="email" id="input-email" placeholder="e.g. sophie@example.com" autocomplete="email">
+    </div>
+    <div class="form-section" style="background:transparent;border-color:transparent;padding:0.5rem 0;">
+      <p style="font-size:13px;color:var(--muted);line-height:1.7;">
+        You will play a short video game prototype while wearing a biosensing wearable, then answer a brief questionnaire and short interview. Minimum age: 18. Good English skills required.<br><br>
+        Contact: <a href="mailto:y.n.frachi@qmul.ac.uk" style="color:var(--accent);">y.n.frachi@qmul.ac.uk</a> · <a href="mailto:frachi.yann@ovomind.com" style="color:var(--accent);">frachi.yann@ovomind.com</a>
+      </p>
+    </div>
+    <div class="actions">
+      <button class="btn btn-primary" onclick="goToStep2()">Choose my slot →</button>
+    </div>
+  </div>
+
+  <!-- STEP 2 — Pick slot -->
+  <div class="view" id="view-step2">
+    <div class="steps">
+      <div class="step-item done"><span class="step-num">1</span> Your info</div>
+      <div class="step-divider"></div>
+      <div class="step-item active"><span class="step-num">2</span> Pick a slot</div>
+      <div class="step-divider"></div>
+      <div class="step-item"><span class="step-num">3</span> Confirm</div>
+    </div>
+    <div class="hint-bar" id="hint-bar">
+      <div class="loading-spinner" id="hint-spinner"></div>
+      <span id="hint-text">Loading available slots…</span>
+    </div>
+    <div class="legend">
+      <div class="legend-item"><span class="legend-dot dot-battelle"></span> Battelle Bat.A, Rm 312</div>
+      <div class="legend-item"><span class="legend-dot dot-fongit"></span> FONGIT</div>
+      <div class="legend-item legend-taken"><span class="legend-dot-taken"></span> Taken</div>
+    </div>
+    <div class="schedule-wrapper">
+      <div class="schedule-grid" id="schedule-grid"></div>
+    </div>
+    <div id="selection-summary" style="display:none;" class="selection-summary">
+      <div style="font-size:13px;color:var(--muted);">Selected slot:</div>
+      <div class="sel-item" id="sel-text"></div>
+    </div>
+    <div class="actions">
+      <button class="btn btn-ghost" onclick="showView('step1');selectedSlot=null;updateSummary();">← Back</button>
+      <button class="btn btn-primary" id="btn-next" onclick="goToStep3()" disabled>Review booking →</button>
+    </div>
+  </div>
+
+  <!-- STEP 3 — Review & Confirm -->
+  <div class="view" id="view-step3">
+    <div class="steps">
+      <div class="step-item done"><span class="step-num">1</span> Your info</div>
+      <div class="step-divider"></div>
+      <div class="step-item done"><span class="step-num">2</span> Pick a slot</div>
+      <div class="step-divider"></div>
+      <div class="step-item active"><span class="step-num">3</span> Confirm</div>
+    </div>
+    <div class="form-section">
+      <p style="font-size:13px;color:var(--muted);margin-bottom:1rem;">Please review your booking details below, then click Confirm. Your email client will open to send the booking to Yann.</p>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div style="display:flex;justify-content:space-between;font-size:14px;padding:8px 0;border-bottom:1px solid var(--border);">
+          <span style="color:var(--muted);font-family:'DM Mono',monospace;font-size:11px;text-transform:uppercase;">Name</span>
+          <span id="review-name" style="font-weight:500;"></span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:14px;padding:8px 0;border-bottom:1px solid var(--border);">
+          <span style="color:var(--muted);font-family:'DM Mono',monospace;font-size:11px;text-transform:uppercase;">Email</span>
+          <span id="review-email" style="font-weight:500;"></span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:14px;padding:8px 0;border-bottom:1px solid var(--border);">
+          <span style="color:var(--muted);font-family:'DM Mono',monospace;font-size:11px;text-transform:uppercase;">Date</span>
+          <span id="review-day" style="font-weight:500;"></span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:14px;padding:8px 0;border-bottom:1px solid var(--border);">
+          <span style="color:var(--muted);font-family:'DM Mono',monospace;font-size:11px;text-transform:uppercase;">Time</span>
+          <span id="review-time" style="font-weight:500;"></span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:14px;padding:8px 0;">
+          <span style="color:var(--muted);font-family:'DM Mono',monospace;font-size:11px;text-transform:uppercase;">Location</span>
+          <span id="review-loc" style="font-weight:500;text-align:right;max-width:60%;"></span>
+        </div>
+      </div>
+    </div>
+    <div class="actions">
+      <button type="button" class="btn btn-ghost" onclick="showView('step2')">← Change slot</button>
+      <button type="button" class="btn btn-primary" id="btn-confirm" onclick="confirmBooking()">✓ Confirm booking</button>
+    </div>
+  </div>
+
+  <footer>
+    <p class="footer-text">EPSRC+AHRC CDT in Media and Arts Technology EP/L01632X/1 — Queen Mary University of London</p>
+  </footer>
+</div>
+
+<script>
+// ─── CONFIG ──────────────────────────────────────────────────────────────────
+// JSONBin.io — free public bin to store booked slots across all visitors.
+// SETUP (one-time, takes 2 minutes):
+//   1. Go to https://jsonbin.io and sign up (free)
+//   2. Click "+ Create Bin", paste in: {"booked":[]}  and Save
+//   3. Copy the Bin ID from the URL (looks like: 6849abc123...)
+//   4. Go to Account > API Keys, create a key, copy it
+//   5. Replace the two placeholders below
+const JSONBIN_ID  = '6a2718d1da38895dfe9bcbe5';
+const JSONBIN_KEY = '$2a$10$e9VCgs3QZurY6tpzxt0lleguzIc7zE2cf2jIGo0cpPhrG4iGNJgLW';
+const BASE_URL    = `https://api.jsonbin.io/v3/b/${JSONBIN_ID}`;
+
+// ─── SCHEDULE DATA ───────────────────────────────────────────────────────────
+const DAYS = [
+  { id: 'thu11', label: 'Thursday',  date: 'June 11', loc: 'battelle', short: 'Battelle' },
+  { id: 'mon22', label: 'Monday',    date: 'June 22', loc: 'battelle', short: 'Battelle' },
+  { id: 'tue23', label: 'Tuesday',   date: 'June 23', loc: 'battelle', short: 'Battelle' },
+  { id: 'wed24', label: 'Wednesday', date: 'June 24', loc: 'fongit',   short: 'FONGIT'   },
+  { id: 'thu25', label: 'Thursday',  date: 'June 25', loc: 'fongit',   short: 'FONGIT'   },
+  { id: 'fri26', label: 'Friday',    date: 'June 26', loc: 'fongit',   short: 'FONGIT'   },
+];
+
+function generateSlots() {
+  const slots = [];
+  for (let h = 10; h <= 18; h++) {
+    for (let m = 0; m < 60; m += 45) {
+      if (h === 18 && m > 0) continue;
+      slots.push(`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`);
+    }
+  }
+  return slots;
+}
+const TIME_SLOTS = generateSlots();
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let userName = '', userEmail = '';
+let selectedSlot = null;
+let bookedSlots = []; // array of slot keys like "thu11|10:00"
+
+// ─── STORAGE HELPERS ─────────────────────────────────────────────────────────
+function slotKey(dayId, time) { return `${dayId}|${time}`; }
+function isBooked(dayId, time) { return bookedSlots.includes(slotKey(dayId, time)); }
+
+async function fetchBooked() {
+  try {
+    const r = await fetch(BASE_URL + '/latest', {
+      headers: { 'X-Master-Key': JSONBIN_KEY }
+    });
+    const data = await r.json();
+    bookedSlots = data.record.booked || [];
+  } catch (e) {
+    console.warn('Could not load booked slots, proceeding without.', e);
+    bookedSlots = [];
+  }
+}
+
+async function markBooked(dayId, time) {
+  const key = slotKey(dayId, time);
+  if (!bookedSlots.includes(key)) bookedSlots.push(key);
+  try {
+    await fetch(BASE_URL, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'X-Master-Key': JSONBIN_KEY },
+      body: JSON.stringify({ booked: bookedSlots })
+    });
+  } catch (e) {
+    console.warn('Could not save booking to remote store.', e);
+  }
+}
+
+// ─── VIEWS ────────────────────────────────────────────────────────────────────
+function showView(id) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-' + id).classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ─── STEP 1 → 2 ──────────────────────────────────────────────────────────────
+async function goToStep2() {
+  userName  = document.getElementById('input-name').value.trim();
+  userEmail = document.getElementById('input-email').value.trim();
+  if (!userName) { alert('Please enter your name.'); return; }
+  if (!userEmail || !userEmail.includes('@')) { alert('Please enter a valid email.'); return; }
+
+  showView('step2');
+  setHint(true, 'Loading available slots…');
+  await fetchBooked();
+  buildGrid();
+  setHint(false, 'Select <strong style="color:var(--accent2);">one slot</strong> that works for you. Greyed-out slots are already taken.');
+}
+
+function setHint(loading, html) {
+  document.getElementById('hint-spinner').style.display = loading ? 'block' : 'none';
+  document.getElementById('hint-text').innerHTML = html;
+}
+
+// ─── GRID ────────────────────────────────────────────────────────────────────
+function buildGrid() {
+  const grid = document.getElementById('schedule-grid');
+  grid.innerHTML = '';
+  const colDefs = [];
+  DAYS.forEach((_, i) => { colDefs.push('var(--col-w)'); if (i < DAYS.length-1) colDefs.push('8px'); });
+  grid.style.gridTemplateColumns = colDefs.join(' ');
+
+  DAYS.forEach((day, di) => {
+    const col = document.createElement('div');
+    col.className = 'day-col';
+    const locClass = day.loc === 'battelle' ? 'loc-battelle' : 'loc-fongit';
+    col.innerHTML = `<div class="day-header"><div class="day-name">${day.label}</div><div class="day-date">${day.date}</div><span class="day-loc ${locClass}">${day.short}</span></div>`;
+
+    const slotsCont = document.createElement('div');
+    slotsCont.className = 'slots-col';
+
+    TIME_SLOTS.forEach(s => {
+      const taken = isBooked(day.id, s);
+      const isSelected = selectedSlot && selectedSlot.dayId === day.id && selectedSlot.slotStart === s;
+      const div = document.createElement('div');
+      div.className = 'slot' + (taken ? ' taken' : '') + (isSelected && !taken ? ' selected' : '');
+
+      if (taken) {
+        div.innerHTML = `<span class="slot-time">${s}</span><span class="slot-check"><span style="font-size:8px;color:#555;">✕</span></span>`;
+      } else {
+        div.innerHTML = `<span class="slot-time">${s}</span><span class="slot-check"></span>`;
+        div.addEventListener('click', () => selectSlot(div, day, s));
+      }
+      slotsCont.appendChild(div);
+    });
+
+    col.appendChild(slotsCont);
+    grid.appendChild(col);
+    if (di < DAYS.length - 1) { const g = document.createElement('div'); g.className = 'col-gap'; grid.appendChild(g); }
+  });
+}
+
+function selectSlot(el, day, s) {
+  document.querySelectorAll('.slot.selected').forEach(x => x.classList.remove('selected'));
+  if (selectedSlot && selectedSlot.dayId === day.id && selectedSlot.slotStart === s) {
+    selectedSlot = null;
+  } else {
+    selectedSlot = { dayId: day.id, slotStart: s, dayLabel: day.label, date: day.date, loc: day.loc };
+    el.classList.add('selected');
+  }
+  updateSummary();
+}
+
+function updateSummary() {
+  const summary = document.getElementById('selection-summary');
+  const btn = document.getElementById('btn-next');
+  if (!selectedSlot) { summary.style.display = 'none'; btn.disabled = true; return; }
+  summary.style.display = 'block';
+  document.getElementById('sel-text').textContent = `→ ${selectedSlot.dayLabel} ${selectedSlot.date} at ${selectedSlot.slotStart} · ${selectedSlot.loc === 'battelle' ? 'Battelle' : 'FONGIT'}`;
+  btn.disabled = false;
+}
+
+// ─── STEP 2 → 3 ──────────────────────────────────────────────────────────────
+function goToStep3() {
+  if (!selectedSlot) return;
+  const locLabel = selectedSlot.loc === 'battelle'
+    ? 'Battelle Bat.A Rm 312, Rte de la Capite 77, Cologny'
+    : 'FONGIT, 34 rte de la Galaise, Plan-les-Ouates';
+
+  document.getElementById('review-name').textContent  = userName;
+  document.getElementById('review-email').textContent = userEmail;
+  document.getElementById('review-day').textContent   = selectedSlot.dayLabel + ', ' + selectedSlot.date;
+  document.getElementById('review-time').textContent  = selectedSlot.slotStart;
+  document.getElementById('review-loc').textContent   = locLabel;
+  showView('step3');
+}
+
+// ─── CONFIRM ─────────────────────────────────────────────────────────────────
+async function confirmBooking() {
+  const btn = document.getElementById('btn-confirm');
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+
+  const locLabel = selectedSlot.loc === 'battelle'
+    ? 'Battelle Bat.A Rm 312, Rte de la Capite 77, Cologny'
+    : 'FONGIT, 34 rte de la Galaise, Plan-les-Ouates';
+
+  // Mark slot as taken in shared storage
+  await markBooked(selectedSlot.dayId, selectedSlot.slotStart);
+
+  // Open Gmail compose with both addresses and pre-filled body
+  const subject = encodeURIComponent(
+    `[Booking] Affective Gaming Study – ${selectedSlot.dayLabel} ${selectedSlot.date} at ${selectedSlot.slotStart}`
+  );
+  const body = encodeURIComponent(
+    `Hi Yann,\n\nI would like to book the following session:\n\nName:     ${userName}\nEmail:    ${userEmail}\nDate:     ${selectedSlot.dayLabel}, ${selectedSlot.date}\nTime:     ${selectedSlot.slotStart}\nLocation: ${locLabel}\n\nPlease confirm my slot.\n\nThank you!`
+  );
+
+  window.open(
+    `https://mail.google.com/mail/?view=cm&to=y.n.frachi@qmul.ac.uk,frachi.yann@ovomind.com&su=${subject}&body=${body}`,
+    '_blank'
+  );
+
+  setTimeout(() => showView('success'), 600);
+}
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+document.getElementById('view-step1').classList.add('active');
+</script>
+</body>
+</html>

@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Slot Manager</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0a0a0f; --surface: #111118; --surface2: #18181f;
+    --border: rgba(255,255,255,0.08); --border2: rgba(255,255,255,0.14);
+    --text: #f0eff8; --muted: #8885a8;
+    --accent: #7c6dfa; --accent-glow: rgba(124,109,250,0.18);
+    --green: #00e5b0; --green-glow: rgba(0,229,176,0.12);
+    --red: #ff5a5a; --red-glow: rgba(255,90,90,0.12);
+    --col-w: 130px;
+  }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 2rem 1.5rem; }
+  .container { max-width: 900px; margin: 0 auto; }
+  h1 { font-family: 'Syne', sans-serif; font-size: 1.6rem; font-weight: 800; margin-bottom: 0.3rem; }
+  .sub { font-size: 13px; color: var(--muted); margin-bottom: 2rem; }
+
+  .config { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; margin-bottom: 1.5rem; display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
+  .config label { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); display: block; margin-bottom: 5px; text-transform: uppercase; }
+  .config input { background: var(--surface2); border: 1px solid var(--border2); border-radius: 6px; padding: 8px 12px; font-size: 13px; color: var(--text); font-family: 'DM Mono', monospace; outline: none; width: 280px; }
+  .config input:focus { border-color: var(--accent); }
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px; border-radius: 7px; font-size: 13px; font-weight: 500; cursor: pointer; border: none; font-family: 'DM Sans', sans-serif; transition: all 0.15s; }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: #9387fc; }
+  .btn-sm { padding: 5px 12px; font-size: 12px; }
+  .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border2); }
+  .btn-ghost:hover { color: var(--text); background: var(--surface2); }
+  .btn-danger { background: var(--red-glow); color: var(--red); border: 1px solid rgba(255,90,90,0.25); }
+  .btn-danger:hover { background: rgba(255,90,90,0.2); }
+
+  .status-bar { font-family: 'DM Mono', monospace; font-size: 12px; padding: 8px 14px; border-radius: 7px; margin-bottom: 1.5rem; }
+  .status-bar.ok  { background: var(--green-glow); color: var(--green); border: 1px solid rgba(0,229,176,0.2); }
+  .status-bar.err { background: var(--red-glow);   color: var(--red);   border: 1px solid rgba(255,90,90,0.2); }
+  .status-bar.info{ background: var(--surface2);   color: var(--muted); border: 1px solid var(--border); }
+
+  .legend { display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap; }
+  .leg { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+  .dot { width: 10px; height: 10px; border-radius: 50%; }
+
+  .schedule-wrapper { overflow-x: auto; padding-bottom: 1rem; }
+  .schedule-grid { display: grid; min-width: fit-content; gap: 0; }
+  .day-col { min-width: var(--col-w); }
+  .day-header { padding: 10px 8px 8px; border-radius: 8px 8px 0 0; background: var(--surface2); border: 1px solid var(--border); border-bottom: none; }
+  .day-name { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; }
+  .day-date { font-size: 11px; color: var(--muted); margin-top: 2px; font-family: 'DM Mono', monospace; }
+  .day-loc { display: inline-flex; font-size: 10px; margin-top: 5px; padding: 2px 7px; border-radius: 4px; font-family: 'DM Mono', monospace; text-transform: uppercase; }
+  .loc-battelle { background: rgba(124,109,250,0.15); color: var(--accent); }
+  .loc-fongit   { background: rgba(0,229,176,0.12);   color: var(--green); }
+  .slots-col { background: var(--surface); border: 1px solid var(--border); border-top: none; border-radius: 0 0 8px 8px; overflow: hidden; }
+  .slot { display: flex; align-items: center; justify-content: space-between; padding: 5px 10px; cursor: pointer; border-bottom: 1px solid var(--border); user-select: none; min-height: 28px; transition: background 0.1s; }
+  .slot:last-child { border-bottom: none; }
+  .slot-time { font-family: 'DM Mono', monospace; font-size: 11px; }
+  .slot.free  { }
+  .slot.free:hover { background: var(--green-glow); }
+  .slot.free .slot-time { color: var(--muted); }
+  .slot.free .pip { width: 10px; height: 10px; border-radius: 50%; border: 1px solid #444; background: transparent; }
+  .slot.taken { background: var(--red-glow) !important; }
+  .slot.taken:hover { background: rgba(255,90,90,0.18) !important; }
+  .slot.taken .slot-time { color: var(--red); text-decoration: line-through; }
+  .slot.taken .pip { width: 10px; height: 10px; border-radius: 50%; background: var(--red); border: none; }
+  .col-gap { width: 8px; }
+
+  .actions-row { display: flex; gap: 8px; margin-top: 1.5rem; flex-wrap: wrap; }
+  .saving { opacity: 0.5; pointer-events: none; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>🔧 Slot Admin</h1>
+  <p class="sub">Click any slot to toggle it taken / free. Changes save instantly to JSONBin.</p>
+
+  <div class="config">
+    <div>
+      <label>JSONBin ID</label>
+      <input id="cfg-id"  placeholder="6849abc123ef..." />
+    </div>
+    <div>
+      <label>API Key</label>
+      <input id="cfg-key" placeholder="$2b$10$..." type="password" />
+    </div>
+    <button class="btn btn-primary" onclick="load()">Load slots</button>
+  </div>
+
+  <div id="status" class="status-bar info">Enter your JSONBin credentials above and click Load.</div>
+
+  <div class="legend">
+    <div class="leg"><div class="dot" style="background:var(--green);"></div> Free</div>
+    <div class="leg"><div class="dot" style="background:var(--red);"></div> Taken (click to free)</div>
+  </div>
+
+  <div class="schedule-wrapper">
+    <div class="schedule-grid" id="grid"></div>
+  </div>
+
+  <div class="actions-row">
+    <button class="btn btn-danger btn-sm" onclick="clearAll()">Clear all bookings</button>
+  </div>
+</div>
+
+<script>
+const DAYS = [
+  { id: 'thu11', label: 'Thursday',  date: 'June 11', loc: 'battelle', short: 'Battelle' },
+  { id: 'mon22', label: 'Monday',    date: 'June 22', loc: 'battelle', short: 'Battelle' },
+  { id: 'tue23', label: 'Tuesday',   date: 'June 23', loc: 'battelle', short: 'Battelle' },
+  { id: 'wed24', label: 'Wednesday', date: 'June 24', loc: 'fongit',   short: 'FONGIT'   },
+  { id: 'thu25', label: 'Thursday',  date: 'June 25', loc: 'fongit',   short: 'FONGIT'   },
+  { id: 'fri26', label: 'Friday',    date: 'June 26', loc: 'fongit',   short: 'FONGIT'   },
+];
+function generateSlots() {
+  const s = [];
+  for (let h = 10; h <= 18; h++)
+    for (let m = 0; m < 60; m += 45) {
+      if (h === 18 && m > 0) continue;
+      s.push(`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`);
+    }
+  return s;
+}
+const TIME_SLOTS = generateSlots();
+
+let bookedSlots = [];
+let saving = false;
+
+function binId()  { return document.getElementById('cfg-id').value.trim(); }
+function apiKey() { return document.getElementById('cfg-key').value.trim(); }
+function baseUrl(){ return `https://api.jsonbin.io/v3/b/${binId()}`; }
+function slotKey(dayId, time) { return `${dayId}|${time}`; }
+
+function setStatus(msg, type = 'info') {
+  const el = document.getElementById('status');
+  el.textContent = msg;
+  el.className = 'status-bar ' + type;
+}
+
+async function load() {
+  if (!binId() || !apiKey()) { setStatus('Please enter both Bin ID and API Key.', 'err'); return; }
+  setStatus('Loading…', 'info');
+  try {
+    const r = await fetch(baseUrl() + '/latest', { headers: { 'X-Master-Key': apiKey() } });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const data = await r.json();
+    bookedSlots = data.record.booked || [];
+    buildGrid();
+    setStatus(`Loaded. ${bookedSlots.length} slot(s) taken.`, 'ok');
+    // Save creds to sessionStorage so you don't retype on refresh
+    sessionStorage.setItem('admin_id',  binId());
+    sessionStorage.setItem('admin_key', apiKey());
+  } catch(e) {
+    setStatus('Error loading: ' + e.message, 'err');
+  }
+}
+
+async function save() {
+  saving = true;
+  document.getElementById('grid').classList.add('saving');
+  setStatus('Saving…', 'info');
+  try {
+    const r = await fetch(baseUrl(), {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'X-Master-Key': apiKey() },
+      body: JSON.stringify({ booked: bookedSlots })
+    });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    setStatus(`Saved. ${bookedSlots.length} slot(s) taken.`, 'ok');
+  } catch(e) {
+    setStatus('Error saving: ' + e.message, 'err');
+  }
+  saving = false;
+  document.getElementById('grid').classList.remove('saving');
+}
+
+function buildGrid() {
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+  const colDefs = [];
+  DAYS.forEach((_, i) => { colDefs.push('var(--col-w)'); if (i < DAYS.length-1) colDefs.push('8px'); });
+  grid.style.gridTemplateColumns = colDefs.join(' ');
+
+  DAYS.forEach((day, di) => {
+    const col = document.createElement('div');
+    col.className = 'day-col';
+    const locClass = day.loc === 'battelle' ? 'loc-battelle' : 'loc-fongit';
+    col.innerHTML = `<div class="day-header"><div class="day-name">${day.label}</div><div class="day-date">${day.date}</div><span class="day-loc ${locClass}">${day.short}</span></div>`;
+    const slotsCont = document.createElement('div');
+    slotsCont.className = 'slots-col';
+    TIME_SLOTS.forEach(s => {
+      const key = slotKey(day.id, s);
+      const taken = bookedSlots.includes(key);
+      const div = document.createElement('div');
+      div.className = 'slot ' + (taken ? 'taken' : 'free');
+      div.innerHTML = `<span class="slot-time">${s}</span><span class="pip"></span>`;
+      div.addEventListener('click', () => toggleSlot(div, key));
+      slotsCont.appendChild(div);
+    });
+    col.appendChild(slotsCont);
+    grid.appendChild(col);
+    if (di < DAYS.length - 1) { const g = document.createElement('div'); g.className = 'col-gap'; grid.appendChild(g); }
+  });
+}
+
+function toggleSlot(el, key) {
+  if (saving) return;
+  if (bookedSlots.includes(key)) {
+    bookedSlots = bookedSlots.filter(k => k !== key);
+    el.className = 'slot free';
+  } else {
+    bookedSlots.push(key);
+    el.className = 'slot taken';
+  }
+  save();
+}
+
+async function clearAll() {
+  if (!confirm('Clear ALL bookings? This cannot be undone.')) return;
+  bookedSlots = [];
+  buildGrid();
+  await save();
+}
+
+// Restore creds from session if available
+window.addEventListener('DOMContentLoaded', () => {
+  const id  = sessionStorage.getItem('admin_id');
+  const key = sessionStorage.getItem('admin_key');
+  if (id)  document.getElementById('cfg-id').value  = '6a2718d1da38895dfe9bcbe5';
+  if (key) document.getElementById('cfg-key').value = '$2a$10$e9VCgs3QZurY6tpzxt0lleguzIc7zE2cf2jIGo0cpPhrG4iGNJgLW';
+  if (id && key) load();
+});
+</script>
+</body>
+</html>
