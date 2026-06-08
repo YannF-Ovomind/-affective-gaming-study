@@ -120,7 +120,7 @@
         <h1>Affective Gaming<br>Study — Book a slot</h1>
         <p class="subtitle">
           Queen Mary University of London · Université de Genève<br>
-          <span style="font-size:12px;">Battelle Bat.A Rm 312, Rte de la Capite 77, 1223 Cologny &amp; FONGIT, 34 rte de la Galaise, 1228 Plan-les-Ouates</span>
+          <span style="font-size:12px;">Battelle Bat.A Rm 312, Route de Drize 7, 1227 Carouge &amp; FONGIT, 34 rte de la Galaise, 1228 Plan-les-Ouates</span>
         </p>
       </div>
       <div class="reward-badge">
@@ -189,7 +189,7 @@
       <span id="hint-text">Loading available slots…</span>
     </div>
     <div class="legend">
-      <div class="legend-item"><span class="legend-dot dot-battelle"></span> Battelle Bat.A, Rm 312</div>
+      <div class="legend-item"><span class="legend-dot dot-battelle"></span> Battelle Bat.A, Rm 312 — Route de Drize 7, 1227 Carouge</div>
       <div class="legend-item"><span class="legend-dot dot-fongit"></span> FONGIT</div>
       <div class="legend-item legend-taken"><span class="legend-dot-taken"></span> Taken</div>
     </div>
@@ -410,7 +410,7 @@ function updateSummary() {
 function goToStep3() {
   if (!selectedSlot) return;
   const locLabel = selectedSlot.loc === 'battelle'
-    ? 'Battelle Bat.A Rm 312, Rte de la Capite 77, Cologny'
+    ? 'Battelle Bat.A Rm 312, Route de Drize 7, 1227 Carouge'
     : 'FONGIT, 34 rte de la Galaise, Plan-les-Ouates';
 
   document.getElementById('review-name').textContent  = userName;
