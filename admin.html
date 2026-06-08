@@ -143,7 +143,9 @@ async function load() {
     const r = await fetch(baseUrl() + '/latest', { headers: { 'X-Master-Key': apiKey() } });
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
     const data = await r.json();
-    bookedSlots = data.record.booked || [];
+    bookedSlots = (data.record.booked || []).map(b =>
+      typeof b === 'string' ? { key: b, name: '', email: '' } : b
+    );
     buildGrid();
     setStatus(`Loaded. ${bookedSlots.length} slot(s) taken.`, 'ok');
     sessionStorage.setItem('admin_id',  binId());
@@ -193,8 +195,8 @@ function buildGrid() {
       const div = document.createElement('div');
       div.className = 'slot ' + (taken ? 'taken' : 'free');
       if (taken) {
-        const firstName = booking.name ? booking.name.split(' ')[0] : '—';
-        div.innerHTML = `<span class="slot-time">${s}</span><span class="slot-name" title="${booking.name} · ${booking.email}">${firstName}</span>`;
+        const label = booking.name ? booking.name.split(' ')[0] : (booking.email || 'booked');
+        div.innerHTML = `<span class="slot-time">${s}</span><span class="slot-name" title="${booking.name} · ${booking.email}">${label}</span>`;
       } else {
         div.innerHTML = `<span class="slot-time">${s}</span><span class="pip"></span>`;
       }

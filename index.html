@@ -299,7 +299,10 @@ async function fetchBooked() {
       headers: { 'X-Master-Key': JSONBIN_KEY }
     });
     const data = await r.json();
-    bookedSlots = data.record.booked || [];
+    // Migrate old string format to object format
+    bookedSlots = (data.record.booked || []).map(b =>
+      typeof b === 'string' ? { key: b, name: '', email: '' } : b
+    );
   } catch (e) {
     console.warn('Could not load booked slots, proceeding without.', e);
     bookedSlots = [];
