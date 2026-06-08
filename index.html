@@ -138,8 +138,7 @@
       <div class="success-icon">✓</div>
       <div class="success-title">You're booked!</div>
       <p style="font-size:14px;color:var(--muted);line-height:1.7;">
-        Thank you! A Gmail compose window should have opened with your booking details pre-filled — just hit Send.<br><br>
-        If it didn't open, please email <a href="mailto:y.n.frachi@qmul.ac.uk" style="color:var(--accent);">y.n.frachi@qmul.ac.uk</a> with your chosen slot.<br><br>
+        Your slot is confirmed! Yann will be in touch to share the details.<br><br>
         Questions? <a href="mailto:y.n.frachi@qmul.ac.uk" style="color:var(--accent);">y.n.frachi@qmul.ac.uk</a> · <a href="mailto:frachi.yann@ovomind.com" style="color:var(--accent);">frachi.yann@ovomind.com</a>
       </p>
       <div class="actions" style="justify-content:center;margin-top:1.5rem;">
@@ -428,27 +427,10 @@ async function confirmBooking() {
   btn.disabled = true;
   btn.textContent = 'Saving…';
 
-  const locLabel = selectedSlot.loc === 'battelle'
-    ? 'Battelle Bat.A Rm 312, Rte de la Capite 77, Cologny'
-    : 'FONGIT, 34 rte de la Galaise, Plan-les-Ouates';
-
   // Mark slot as taken in shared storage
   await markBooked(selectedSlot.dayId, selectedSlot.slotStart, userName, userEmail);
 
-  // Open Gmail compose with both addresses and pre-filled body
-  const subject = encodeURIComponent(
-    `[Booking] Affective Gaming Study – ${selectedSlot.dayLabel} ${selectedSlot.date} at ${selectedSlot.slotStart}`
-  );
-  const body = encodeURIComponent(
-    `Hi Yann,\n\nI would like to book the following session:\n\nName:     ${userName}\nEmail:    ${userEmail}\nDate:     ${selectedSlot.dayLabel}, ${selectedSlot.date}\nTime:     ${selectedSlot.slotStart}\nLocation: ${locLabel}\n\nPlease confirm my slot.\n\nThank you!`
-  );
-
-  window.open(
-    `https://mail.google.com/mail/?view=cm&to=y.n.frachi@qmul.ac.uk,frachi.yann@ovomind.com&su=${subject}&body=${body}`,
-    '_blank'
-  );
-
-  setTimeout(() => showView('success'), 600);
+  showView('success');
 }
 
 // ─── INIT ────────────────────────────────────────────────────────────────────
