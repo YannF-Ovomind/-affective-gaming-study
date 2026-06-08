@@ -126,7 +126,7 @@
       <div class="reward-badge">
         <div>
           <div class="amount">10 CHF</div>
-          <div class="label">Steam gift card<br>60 min session</div>
+          <div class="label">Steam gift card<br>45 min session</div>
         </div>
       </div>
     </div>
@@ -278,10 +278,7 @@ const DAYS = [
 function generateSlots() {
   const slots = [];
   for (let h = 10; h <= 18; h++) {
-    for (let m = 0; m < 60; m += 45) {
-      if (h === 18 && m > 0) continue;
-      slots.push(`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`);
-    }
+    slots.push(`${String(h).padStart(2,'0')}:00`);
   }
   return slots;
 }
